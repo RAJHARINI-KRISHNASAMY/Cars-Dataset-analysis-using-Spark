@@ -1,0 +1,109 @@
+val cars = spark
+  .read.format("csv")
+  .option("header", "true")
+  .load("hdfs://10.128.0.5:8020/BigData/Cars.csv")
+
+
+
+val cars_cols = cars.select(col("maker"), 
+col("model"),
+col("mileage").cast("int"), 
+col("manufacture_year").cast("int"), 
+col("engine_displacement").cast("int"),
+col("engine_power").cast("int"),col("pollution_test").cast("boolean"),
+col("auto_facility").cast("boolean"),
+col("car_type"),col("fuel_type"),
+col("price").cast("int"))
+
+Query 1: a)count and average_price of diesel cars
+
+val cars_1 =cars_cols
+.filter("fuel_type == \"diesel\" ")
+.filter("manufacture_year >= 2010")
+.groupBy(col("maker"))
+.agg(avg(col("price")).alias("average_price"),
+countDistinct(col("model")).alias("model_count"))
+.orderBy(col("model_count").desc)
+.show(10)
+Query 1: count and average_price of gasoline cars
+
+val cars_1 =cars_cols
+.filter("fuel_type == \"gasoline\" ")
+.filter("manufacture_year >= 2010")
+.groupBy(col("maker"))
+.agg(avg(col("price")).alias("average_price"),
+countDistinct(col("model")).alias("model_count"))
+.orderBy(col("model_count").desc)
+.show(10)
+
+QUERY 2: SPEC of the car across price and it is listed separately for both the fuel type
+
+val cars_1 =cars_cols
+.filter("price<=20000")
+.filter("manufacture_year >= 2010")
+.groupBy(col("fuel_type"))
+.agg(avg(col("mileage")),avg(col("engine_displacement")),avg(col("engine_power")))
+.show()
+
+val cars_1 =cars_cols
+.filter("price>=20000 AND price<=40000")
+.filter("manufacture_year >= 2010")
+.groupBy(col("fuel_type"))
+.agg(avg(col("mileage")),avg(col("engine_displacement")),avg(col("engine_power")))
+.show()
+
+val cars_1 =cars_cols
+.filter("price>=40000 AND price<=60000")
+.filter("manufacture_year >= 2010")
+.groupBy(col("fuel_type"))
+.agg(avg(col("mileage")),avg(col("engine_displacement")),avg(col("engine_power")))
+.show()
+
+val cars_1 =cars_cols
+.filter("price>=60000")
+.filter("manufacture_year >= 2010")
+.groupBy(col("fuel_type"))
+.agg(avg(col("mileage")),avg(col("engine_displacement")),avg(col("engine_power")),
+avg(col("price")))
+.show()
+
+QUERY 3: Makers with frequent model release for recent 10 years
+
+val cars_1 =cars_cols
+.filter("manufacture_year >= 2006")
+.groupBy(col("maker"))
+.agg(countDistinct(col("model")).alias("model_count"))
+.orderBy(col("model_count").desc).show(20)
+
+QUERY 4: top 5 makers by price range
+
+val cars_1 =cars_cols
+.filter("manufacture_year >= 2010")
+.filter("price<40000")
+.filter("fuel_type == \"diesel\" ")
+.groupBy(col("maker"))
+.agg(avg(col("mileage")).alias("average_mileage"),
+avg(col("price")).alias("average_price"),
+countDistinct(col("model")).alias("model_count")).filter("model_count >=10")
+.orderBy(col("average_mileage").desc).limit(5).show()
+
+val cars_1 =cars_cols
+.filter("manufacture_year >= 2010")
+.filter("price<40000")
+.filter("fuel_type == \"gasoline\" ")
+.groupBy(col("maker"))
+.agg(avg(col("mileage")).alias("average_mileage"),
+avg(col("price")).alias("average_price"),
+countDistinct(col("model")).alias("model_count")).filter("model_count >=10")
+.orderBy(col("average_mileage").desc).limit(5).show()
+
+val cars_1 =cars_cols
+.filter("manufacture_year >= 2010")
+.filter("price>=40000")
+.filter("fuel_type == \"gasoline\" ")
+.filter("engine_power>=150")
+.groupBy(col("maker"))
+.agg(avg(col("mileage")).alias("average_mileage"),
+avg(col("price")).alias("average_price"))
+.orderBy(col("average_mileage").desc).limit(5).show()
+
